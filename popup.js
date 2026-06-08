@@ -15,7 +15,6 @@ const state = {
   editing: false,
   dirty: false,
   saving: false,
-  saveTimer: null,
 };
 
 const els = {
@@ -75,26 +74,22 @@ function bindEvents() {
   els.refresh.addEventListener("click", () => refreshPrompts({ quiet: false }));
   els.search.addEventListener("input", () => {
     state.query = els.search.value;
-    if (state.editing) {
-      stopEditing({ flush: true }).then(render).catch((error) => setStatus(error.message || String(error), true));
-      return;
-    }
     selectFirstIfNeeded();
     render();
   });
   els.agent.addEventListener("change", async () => {
-    await stopEditing({ flush: true });
     state.agent = els.agent.value;
     await storageSet({ agent: state.agent });
     renderPreview();
   });
-  els.edit.addEventListener("click", toggleEditing);
+  els.edit.addEventListener("click", () => {
+    toggleEditing().catch((error) => setStatus(error.message || "Could not update edit mode.", true));
+  });
   els.copy.addEventListener("click", copySelectedPrompt);
   els.preview.addEventListener("input", () => {
     if (!state.editing) return;
     state.dirty = true;
     setSaveState("Unsaved");
-    queueAutosave();
   });
 }
 
@@ -124,7 +119,6 @@ async function refreshPrompts({ quiet }) {
   }
 
   if (!quiet) {
-    await stopEditing({ flush: true });
     setStatus("Checking folder access...");
   }
   const permission = await ensureDirectoryPermission(state.dirHandle, { request: !quiet, mode: "read" });
@@ -209,7 +203,10 @@ function render() {
 
   els.emptyState.hidden = hasLibrary;
   els.content.hidden = !hasLibrary;
-  els.refresh.disabled = !hasFolder;
+  els.chooseFolder.disabled = state.editing;
+  els.refresh.disabled = !hasFolder || state.editing;
+  els.search.disabled = state.editing;
+  els.agent.disabled = state.editing;
   els.copy.disabled = !hasPrompts;
 
   renderList();
@@ -231,6 +228,7 @@ function renderList() {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "prompt-item";
+    item.disabled = state.editing && prompt.id !== state.selectedId;
     item.setAttribute("role", "option");
     item.setAttribute("aria-selected", String(prompt.id === state.selectedId));
     item.addEventListener("click", () => selectPrompt(prompt.id));
@@ -293,16 +291,21 @@ async function copySelectedPrompt() {
 
 async function selectPrompt(promptId) {
   if (promptId === state.selectedId) return;
-  await stopEditing({ flush: true });
+  if (state.editing) {
+    setStatus("Click Done to save before switching prompts.", true);
+    return;
+  }
   state.selectedId = promptId;
   render();
 }
 
 async function toggleEditing() {
   if (state.editing) {
-    await stopEditing({ flush: true });
+    await saveEditedPrompt();
+    state.editing = false;
+    state.dirty = false;
     renderPreview();
-    setStatus("Editing stopped.");
+    render();
     return;
   }
 
@@ -326,50 +329,24 @@ async function toggleEditing() {
   els.preview.focus();
   els.preview.setSelectionRange(els.preview.value.length, els.preview.value.length);
   setSaveState("Editing");
-  setStatus("Editing. Changes save automatically.");
-}
-
-async function stopEditing({ flush }) {
-  if (!state.editing) return;
-  if (flush) await flushPendingSave();
-  state.editing = false;
-  state.dirty = false;
-  clearTimeout(state.saveTimer);
-  state.saveTimer = null;
-  setSaveState("");
-}
-
-function queueAutosave(delay = 650) {
-  clearTimeout(state.saveTimer);
-  state.saveTimer = setTimeout(() => {
-    state.saveTimer = null;
-    saveEditedPrompt().catch((error) => {
-      state.dirty = true;
-      setSaveState("Unsaved");
-      setStatus(error.message || "Could not save prompt.", true);
-    });
-  }, delay);
-}
-
-async function flushPendingSave() {
-  clearTimeout(state.saveTimer);
-  state.saveTimer = null;
-  if (state.dirty) await saveEditedPrompt();
+  render();
+  setStatus("Editing. Click Done to save changes.");
 }
 
 async function saveEditedPrompt() {
   const prompt = selectedPrompt();
   if (!state.editing || !prompt || !state.dirHandle) return;
-  if (state.saving) {
-    queueAutosave(120);
+  if (!state.dirty) {
+    setSaveState("");
+    setStatus("No changes to save.");
     return;
   }
+  if (state.saving) return;
 
   const fileName = prompt.fileName;
   const nextPreview = els.preview.value;
   const nextRawText = core.promptTextWithOutput(prompt, state.agent, nextPreview);
   state.saving = true;
-  state.dirty = false;
   setSaveState("Saving...");
 
   try {
@@ -383,15 +360,16 @@ async function saveEditedPrompt() {
     await persistPromptCache();
     renderList();
     updateSyncTime();
+    state.dirty = false;
     setSaveState("Saved");
     setStatus(`Saved ${fileName}.`);
+  } catch (error) {
+    state.dirty = true;
+    setSaveState("Unsaved");
+    setStatus(error.message || "Could not save prompt.", true);
+    throw error;
   } finally {
     state.saving = false;
-    if (state.editing && els.preview.value !== nextPreview) {
-      state.dirty = true;
-      setSaveState("Unsaved");
-      queueAutosave(120);
-    }
   }
 }
 

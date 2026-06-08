@@ -11,7 +11,7 @@ Chrome extension for browsing a local prompt folder, previewing agent-specific p
 - Search prompt names, descriptions, usage notes, and tags.
 - Preview the selected prompt.
 - Copy the Codex, Claude, or full prompt body.
-- Edit the preview text and autosave it back to the prompt markdown file.
+- Edit the preview text and save it back to the prompt markdown file.
 
 Prompt files should be Markdown with optional YAML-style front matter:
 
@@ -48,4 +48,4 @@ Run parser tests:
 npm test
 ```
 
-The extension uses Chrome's File System Access API plus IndexedDB. PromptShelf stores the last parsed prompt list locally, so you can still browse and copy cached prompts if Chrome asks to reconnect the folder. Click `Refresh` to grant folder access again and sync the latest files. Click `Edit` to grant write access; after that, prompt text changes autosave to the matching markdown file.
+The extension uses Chrome's File System Access API plus IndexedDB. PromptShelf stores the last parsed prompt list locally, so you can still browse and copy cached prompts if Chrome asks to reconnect the folder. Click `Refresh` to grant folder access again and sync the latest files. Click `Edit` to grant write access, make changes in the preview, then click `Done` to save the matching markdown file.
