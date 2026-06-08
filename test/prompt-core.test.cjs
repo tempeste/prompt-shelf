@@ -40,6 +40,63 @@ test("returns agent-specific sections", () => {
   assert.equal(core.agentSection(body, "all"), body);
 });
 
+test("updates agent-specific section while preserving front matter", () => {
+  const prompt = core.loadPrompt(
+    "agent.md",
+    [
+      "---",
+      "name: agent",
+      "tags: [one]",
+      "---",
+      "",
+      "Intro",
+      "",
+      "## Claude",
+      "Claude text",
+      "",
+      "## Codex",
+      "Codex text",
+    ].join("\n"),
+  );
+
+  assert.equal(
+    core.promptTextWithOutput(prompt, "codex", "New Codex text"),
+    [
+      "---",
+      "name: agent",
+      "tags: [one]",
+      "---",
+      "",
+      "Intro",
+      "",
+      "## Claude",
+      "Claude text",
+      "",
+      "## Codex",
+      "New Codex text",
+      "",
+    ].join("\n"),
+  );
+});
+
+test("updates whole body when copying all", () => {
+  const prompt = core.loadPrompt(
+    "plain.md",
+    [
+      "---",
+      "name: plain",
+      "---",
+      "",
+      "Original",
+    ].join("\n"),
+  );
+
+  assert.equal(
+    core.promptTextWithOutput(prompt, "all", "Replacement"),
+    ["---", "name: plain", "---", "", "Replacement", ""].join("\n"),
+  );
+});
+
 test("falls back to shared sections", () => {
   const body = [
     "## Claude / Codex",
@@ -61,4 +118,3 @@ test("filters prompts by metadata", () => {
   assert.deepEqual(core.filterPrompts(prompts, "complete").map((prompt) => prompt.name), ["full-output"]);
   assert.deepEqual(core.filterPrompts(prompts, "planning").map((prompt) => prompt.name), ["prd"]);
 });
-

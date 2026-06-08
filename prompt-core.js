@@ -46,22 +46,28 @@
   }
 
   function splitFrontMatter(text) {
-    const match = String(text || "").match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)/);
+    const source = String(text || "");
+    const match = source.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/);
     if (!match) {
-      return { meta: {}, body: String(text || "") };
+      return { meta: {}, frontMatter: "", body: source };
     }
     return {
       meta: parseFrontMatterBlock(match[1]),
-      body: match[2] || "",
+      frontMatter: source.slice(0, match[0].length),
+      body: source.slice(match[0].length),
     };
   }
 
   function loadPrompt(fileName, text) {
-    const { meta, body } = splitFrontMatter(text);
+    const source = String(text || "");
+    const { meta, frontMatter, body } = splitFrontMatter(source);
     const fallbackName = stem(fileName);
     return {
       id: fallbackName.toLowerCase(),
       fileName,
+      rawText: source,
+      frontMatter,
+      bodySource: String(body || ""),
       name: String(meta.name || fallbackName),
       description: String(meta.description || ""),
       whenToUse: String(meta.when_to_use || meta.whenToUse || ""),
@@ -118,6 +124,45 @@
     return `${agentSection(prompt.body, agent).trim()}\n`;
   }
 
+  function normalizedBody(text) {
+    const trimmed = String(text || "").replace(/\s+$/g, "");
+    return trimmed ? `${trimmed}\n` : "";
+  }
+
+  function normalizedSection(text) {
+    const body = normalizedBody(text);
+    return body ? `${body}\n` : "\n";
+  }
+
+  function replaceAgentSection(body, agent, nextText) {
+    const text = String(body || "");
+    if (agent === "all") {
+      const leadingWhitespace = text.match(/^\s*/)?.[0] || "";
+      return `${leadingWhitespace}${normalizedBody(nextText)}`;
+    }
+
+    const ranges = sectionRanges(text);
+    if (!ranges.length) return normalizedBody(nextText);
+
+    const wanted = String(agent || "").toLowerCase();
+    let target = ranges.find((range) => range.title.toLowerCase().includes(wanted));
+    if (!target) {
+      target = ranges.find((range) => {
+        const title = range.title.toLowerCase();
+        return title.includes("same prompt") || title.includes("claude / codex");
+      });
+    }
+    if (!target) return normalizedBody(nextText);
+
+    const replacement = target.contentEnd < text.length ? normalizedSection(nextText) : normalizedBody(nextText);
+    return `${text.slice(0, target.contentStart)}${replacement}${text.slice(target.contentEnd)}`;
+  }
+
+  function promptTextWithOutput(prompt, agent, nextText) {
+    const body = replaceAgentSection(prompt.bodySource ?? prompt.body, agent, nextText);
+    return `${prompt.frontMatter || ""}${body}`;
+  }
+
   function searchableText(prompt) {
     return [
       prompt.name,
@@ -145,6 +190,7 @@
     agentSection,
     filterPrompts,
     loadPrompt,
+    promptTextWithOutput,
     promptOutput,
     splitFrontMatter,
   };

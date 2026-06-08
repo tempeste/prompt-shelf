@@ -5,11 +5,13 @@ Chrome extension for browsing a local prompt folder, previewing agent-specific p
 ## Features
 
 - Choose a local prompts folder once.
-- Auto-refresh prompts when the popup opens.
+- Show the last synced prompt list immediately from local browser storage.
+- Auto-sync prompts when the popup opens and Chrome still has folder permission.
 - Refresh manually after editing prompt files.
 - Search prompt names, descriptions, usage notes, and tags.
 - Preview the selected prompt.
 - Copy the Codex, Claude, or full prompt body.
+- Edit the preview text and autosave it back to the prompt markdown file.
 
 Prompt files should be Markdown with optional YAML-style front matter:
 
@@ -46,5 +48,4 @@ Run parser tests:
 npm test
 ```
 
-The extension uses Chrome's File System Access API. If Chrome revokes folder permission, choose the folder again.
-
+The extension uses Chrome's File System Access API plus IndexedDB. PromptShelf stores the last parsed prompt list locally, so you can still browse and copy cached prompts if Chrome asks to reconnect the folder. Click `Refresh` to grant folder access again and sync the latest files. Click `Edit` to grant write access; after that, prompt text changes autosave to the matching markdown file.

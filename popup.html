@@ -9,57 +9,76 @@
   <body>
     <main class="shell">
       <header class="topbar">
-        <div>
-          <h1>PromptShelf</h1>
-          <p id="folder-label" class="muted">No folder selected</p>
+        <div class="brand">
+          <img class="brand-icon" src="icons/icon-48.png" alt="" aria-hidden="true">
+          <div>
+            <h1>PromptShelf</h1>
+            <p id="folder-label" class="muted">No folder selected</p>
+          </div>
         </div>
-        <button id="choose-folder" class="button secondary" type="button">Choose</button>
+        <div class="top-actions">
+          <span id="prompt-count" class="prompt-count">0 prompts</span>
+          <button id="choose-folder" class="button secondary" type="button">Choose folder</button>
+        </div>
       </header>
 
       <section class="controls" aria-label="Prompt controls">
         <label class="search-wrap">
           <span class="sr-only">Search prompts</span>
-          <input id="search" type="search" placeholder="Search prompts" autocomplete="off">
+          <input id="search" type="search" placeholder="Find by name, tag, or purpose" autocomplete="off">
         </label>
 
         <div class="control-row">
-          <label class="agent-field">
-            <span>Copy for</span>
+          <div class="agent-group">
+            <label class="agent-label" for="agent">Copy for</label>
             <span
               class="tooltip"
               tabindex="0"
               data-tip="Some prompts have Codex- or Claude-specific sections. This chooses which version gets copied."
               aria-label="Some prompts have Codex- or Claude-specific sections. This chooses which version gets copied."
             >?</span>
-            <select id="agent">
+            <span id="agent-help" class="sr-only">
+              Some prompts have Codex- or Claude-specific sections. This chooses which version gets copied.
+            </span>
+            <select id="agent" aria-describedby="agent-help">
               <option value="codex" selected>Codex</option>
               <option value="claude">Claude</option>
               <option value="all">All</option>
             </select>
-          </label>
+          </div>
           <button id="refresh" class="button ghost" type="button">Refresh</button>
         </div>
       </section>
 
       <section id="empty-state" class="empty" hidden>
-        <h2>Choose your prompts folder</h2>
-        <p>Select the folder that contains your prompt markdown files.</p>
+        <div class="empty-art" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <h2>Choose a prompt shelf</h2>
+        <p>Select the markdown prompt folder you want to browse.</p>
       </section>
 
       <section id="content" class="content" hidden>
-        <div class="list-pane" aria-label="Prompts">
+        <aside class="list-pane" aria-label="Prompts">
+          <div class="pane-label">Library</div>
           <div id="prompt-list" class="prompt-list" role="listbox" aria-label="Prompts"></div>
-        </div>
+        </aside>
 
         <article class="preview-pane" aria-label="Prompt preview">
           <div class="preview-header">
-            <div>
+            <div class="preview-title">
               <h2 id="prompt-title">Select a prompt</h2>
               <p id="prompt-description" class="muted"></p>
             </div>
-            <button id="copy" class="button primary" type="button">Copy</button>
+            <div class="preview-actions">
+              <span id="save-state" class="save-state" aria-live="polite"></span>
+              <button id="edit" class="button secondary" type="button">Edit</button>
+              <button id="copy" class="button primary" type="button">Copy</button>
+            </div>
           </div>
-          <pre id="preview" class="preview" tabindex="0"></pre>
+          <textarea id="preview" class="preview" spellcheck="false" readonly></textarea>
         </article>
       </section>
 
@@ -73,4 +92,3 @@
     <script src="popup.js"></script>
   </body>
 </html>
-
