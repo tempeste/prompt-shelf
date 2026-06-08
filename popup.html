@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PromptShelf</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1>PromptShelf</h1>
+          <p id="folder-label" class="muted">No folder selected</p>
+        </div>
+        <button id="choose-folder" class="button secondary" type="button">Choose</button>
+      </header>
+
+      <section class="controls" aria-label="Prompt controls">
+        <label class="search-wrap">
+          <span class="sr-only">Search prompts</span>
+          <input id="search" type="search" placeholder="Search prompts" autocomplete="off">
+        </label>
+
+        <div class="control-row">
+          <label class="agent-field">
+            <span>Copy for</span>
+            <span
+              class="tooltip"
+              tabindex="0"
+              data-tip="Some prompts have Codex- or Claude-specific sections. This chooses which version gets copied."
+              aria-label="Some prompts have Codex- or Claude-specific sections. This chooses which version gets copied."
+            >?</span>
+            <select id="agent">
+              <option value="codex" selected>Codex</option>
+              <option value="claude">Claude</option>
+              <option value="all">All</option>
+            </select>
+          </label>
+          <button id="refresh" class="button ghost" type="button">Refresh</button>
+        </div>
+      </section>
+
+      <section id="empty-state" class="empty" hidden>
+        <h2>Choose your prompts folder</h2>
+        <p>Select the folder that contains your prompt markdown files.</p>
+      </section>
+
+      <section id="content" class="content" hidden>
+        <div class="list-pane" aria-label="Prompts">
+          <div id="prompt-list" class="prompt-list" role="listbox" aria-label="Prompts"></div>
+        </div>
+
+        <article class="preview-pane" aria-label="Prompt preview">
+          <div class="preview-header">
+            <div>
+              <h2 id="prompt-title">Select a prompt</h2>
+              <p id="prompt-description" class="muted"></p>
+            </div>
+            <button id="copy" class="button primary" type="button">Copy</button>
+          </div>
+          <pre id="preview" class="preview" tabindex="0"></pre>
+        </article>
+      </section>
+
+      <footer class="statusbar">
+        <span id="status">Ready</span>
+        <span id="sync-time"></span>
+      </footer>
+    </main>
+
+    <script src="prompt-core.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
+

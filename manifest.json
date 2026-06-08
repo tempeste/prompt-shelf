@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "PromptShelf",
+  "version": "0.1.0",
+  "description": "Browse local agent prompts, preview the right agent section, and copy it to the clipboard.",
+  "action": {
+    "default_title": "PromptShelf",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "clipboardWrite"]
+}
+
