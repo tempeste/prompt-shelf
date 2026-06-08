@@ -48,4 +48,8 @@ Run parser tests:
 npm test
 ```
 
+## Agent Skill
+
+PromptShelf includes a public skill at `skills/prompt-shelf-prompt-maker/SKILL.md` for agents that support local skills. Use it to create or normalize prompt markdown files for a `prompts/` folder.
+
 The extension uses Chrome's File System Access API plus IndexedDB. PromptShelf stores the last parsed prompt list locally, so you can still browse and copy cached prompts if Chrome asks to reconnect the folder. Click `Refresh` to grant folder access again and sync the latest files. Click `Edit` to grant write access, make changes in the preview, then click `Done` to save the matching markdown file.
