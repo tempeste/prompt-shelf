@@ -40,13 +40,27 @@ tags: [modifier, codex]
 
 ## Development
 
-No build step is required.
+PromptShelf is written in TypeScript and bundled with Vite. Source files live in `src/`; extension-ready JavaScript is generated into `dist/`.
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Build the extension:
+
+```bash
+npm run build
+```
 
 Run parser tests:
 
 ```bash
 npm test
 ```
+
+The generated `dist/` folder is kept in the repo so the unpacked extension can load directly from the project folder.
 
 ## Agent Skill
 

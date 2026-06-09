@@ -1,6 +1,6 @@
-const assert = require("node:assert/strict");
-const test = require("node:test");
-const core = require("../prompt-core.js");
+import assert from "node:assert/strict";
+import test from "node:test";
+import * as core from "../dist/prompt-core.js";
 
 test("parses prompt front matter and body", () => {
   const prompt = core.loadPrompt(
